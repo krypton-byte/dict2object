@@ -1,6 +1,6 @@
 ## Install
 ```bash
-$ pip install dictionary-to-object
+$ pip install git+https://github.com/krypton-byte/dict2object
 ```
 ### Convert Dict Datatype to Object Like Javascript
 ```python

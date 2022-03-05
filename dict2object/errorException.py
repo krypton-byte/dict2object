@@ -1,4 +1,4 @@
-class numberInKeysNotAllowed(Exception):
+class ObjectOrNumberInKeysNotAllowed(Exception):
     pass
 class ErrorDataType(Exception):
     pass

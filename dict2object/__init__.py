@@ -1,1 +1,5 @@
-from .jsonObject import (toObject, ErrorDataType, numberInKeysNotAllowed)
+from .jsonObject import (
+    JSObject,
+    ErrorDataType,
+    ObjectOrNumberInKeysNotAllowed
+)

@@ -44,7 +44,7 @@ class JSObject:
                     data+=self.__indent*level+f'{self.__color.keys(i.__repr__() if i.isnumeric() else i)}'+self.__color.colon+self.jsonSerialize(js[i], level+1)+self.__color.commas+"\n"
                 elif isinstance(js[i], str):
                     rep = js[i].__repr__()
-                    data+=self.__indent*level+self.__color.keys(i if i.isnumeric() else i.__repr__())+self.__color.colon+self.__color.apply(rep[0])+rep[1:-1]+self.__color.apply(rep[-1])+self.__color.commas+"\n"
+                    data+=self.__indent*level+self.__color.keys(i if i.isnumeric() else i)+self.__color.colon+self.__color.apply(rep)+self.__color.commas+"\n"
                 elif isinstance(js[i], self.__class__):
                     data+=self.__indent*level+f'{self.__color.keys(i.__repr__()) if i.isnumeric() else i}'+self.__color.colon+self.jsonSerialize(js[i].__dict__, level+1)+self.__color.commas+"\n"
                 else:

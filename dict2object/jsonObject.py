@@ -4,16 +4,18 @@ from typing import (
     Optional,
     Any
 )
+from .colors import Color, Colors
 from .errorException import (
     ErrorDataType,
     ObjectOrNumberInKeysNotAllowed
 )
-
+Colors_ = Colors()
 
 class JSObject:
-    def __init__(self, indent = '\t', ignore_attr=[]):
+    def __init__(self, indent = '\t', ignore_attr=[], color: Optional[Color] = Colors_[0]):
         self.__indent = indent
-        self.__ignore_attr = ['__slotnames__','__getitem__','__repr__','__str__', 'fromDict', '__init__', 'jsonSerialize', *ignore_attr, '_'+self.__class__.__name__ + '__indent'+'', '_'+self.__class__.__name__ + '__ignore_attr']
+        self.__color = color if isinstance(color, Color) else Colors_.Empty() 
+        self.__ignore_attr = ['__slotnames__','__getitem__','__repr__','__str__', 'fromDict', '__init__', 'jsonSerialize', *ignore_attr, '_'+self.__class__.__name__ + '__indent'+'', '_'+self.__class__.__name__ + '__ignore_attr', '_'+self.__class__.__name__ + '__color']
 
     def __repr__(self) -> str:
         nd = {}
@@ -32,35 +34,36 @@ class JSObject:
     def jsonSerialize(self, js:Union[list, dict, tuple], level) -> str:
         data   = ""
         if isinstance(js, dict):
-            data = "{\n"
+            data = self.__color.apply("{")+"\n"
             for i in js.keys():
                 if i in self.__ignore_attr:
                     continue
                 elif type(js[i]) in [dict]:
-                    data+=self.__indent*level+self.jsonSerialize(js[i], level+1)+",\n"
-                if isinstance(js[i], (list, tuple)):
-                    data+=self.__indent*level+f'{i.__repr__() if i.isnumeric() else i}: '+self.jsonSerialize(js[i], level+1)+",\n"
+                    data+=self.__indent*level+self.jsonSerialize(js[i], level+1)+self.__color.commas+"\n"
+                elif isinstance(js[i], (list, tuple)):
+                    data+=self.__indent*level+f'{self.__color.keys(i.__repr__() if i.isnumeric() else i)}'+self.__color.colon+self.jsonSerialize(js[i], level+1)+self.__color.commas+"\n"
                 elif isinstance(js[i], str):
-                    data+=self.__indent*level+(i.__repr__() if i.isnumeric() else i)+f":\"{js[i]}\",\n"
+                    rep = js[i].__repr__()
+                    data+=self.__indent*level+self.__color.keys(i if i.isnumeric() else i.__repr__())+self.__color.colon+self.__color.apply(rep[0])+rep[1:-1]+self.__color.apply(rep[-1])+self.__color.commas+"\n"
                 elif isinstance(js[i], self.__class__):
-                    data+=self.__indent*level+f'{i.__repr__() if i.isnumeric() else i}: '+ self.jsonSerialize(js[i].__dict__, level+1)+",\n"
+                    data+=self.__indent*level+f'{self.__color.keys(i.__repr__()) if i.isnumeric() else i}'+self.__color.colon+self.jsonSerialize(js[i].__dict__, level+1)+self.__color.commas+"\n"
                 else:
-                    data+=self.__indent*level+(i.__repr__() if i.isnumeric() else i)+f": {js[i]},\n"
+                    data+=self.__indent*level+self.__color.keys(i.__repr__() if i.isnumeric() else i)+self.__color.colon+f"{self.__color.apply(js[i])}"+self.__color.commas+"\n"
             else:
-                data = data.strip(",\n")+"\n"+(self.__indent*(level-1))+"}"
+                data = data.strip(",\n")+"\n"+(self.__indent*(level-1))+self.__color.apply("}")
         elif isinstance(js, (list, tuple)):
-            data = "[\n"
+            data = ' '+self.__color.apply("[")+' '+"\n"
             for i in js:
                 if isinstance(i, (list, tuple)):
-                    data+=self.__indent*level+self.jsonSerialize(i, level+1)+",\n"
+                    data+=self.__indent*level+self.jsonSerialize(i, level+1)+self.__color.commas+"\n"
                 elif isinstance(i, dict):
-                    data+=self.__indent*level+self.jsonSerialize(i, level+1)+",\n"
+                    data+=self.__indent*level+self.jsonSerialize(i, level+1)+self.__color.commas+"\n"
                 elif isinstance(i, self.__class__):
-                    data+=self.__indent*level+self.jsonSerialize(i.__dict__, level+1)+",\n"
+                    data+=self.__indent*level+self.jsonSerialize(i.__dict__, level+1)+self.__color.commas+"\n"
                 else:
-                    data+=self.__indent*level+i.__repr__()+",\n"
+                    data+=self.__indent*level+self.__color.apply(i.__repr__() if isinstance(i, str) else i)+''+self.__color.commas+"\n"
             else:
-                data = data.strip(",\n")+"\n"+self.__indent*(level-1)+"]"          
+                data = data.strip(self.__color.commas+"\n")+"\n"+self.__indent*(level-1)+self.__color.apply("]")        
         return data
 
     def fromDict(self, js:Union[list, dict, tuple], indent:Optional[str] = None) -> Union[Any, tuple, list]:
@@ -78,7 +81,7 @@ class JSObject:
                         data.append(i)
                 return type(js)(data)
             elif isinstance(js, dict):
-                obj = self.__class__(self.__indent, self.__ignore_attr)
+                obj = self.__class__(self.__indent, self.__ignore_attr, self.__color)
                 for i in js.keys():
                     if type(js[i]) in [list, dict, tuple]:
                         setattr(obj,i.replace(" ","_"),self.fromDict(js[i], indent))

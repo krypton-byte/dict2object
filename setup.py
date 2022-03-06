@@ -13,7 +13,7 @@ setup(
   url = 'https://github.com/krypton-byte/dict2object',
   download_url = 'https://github.com/krypton-byte/dict2object/archive/0.0.1.tar.gz',
   keywords = ['json','dictionary', 'object', 'toObject'],
-  install_requires=[],
+  install_requires=['colorama'],
   classifiers=[
     'Development Status :: 3 - Alpha',
     'Intended Audience :: Developers',

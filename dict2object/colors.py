@@ -31,7 +31,7 @@ class Color:
         elif isinstance(char, str) and (char[-1] in ["'", '"']):
             return self.string+char[0]+char[1:-1]+char[-1]
         else:
-            return self.other+char.__str__()+Fore.RESET
+            return self.other+str(char)+Fore.RESET
     def __str__(self):
         return self.name
     def __repr__(self):

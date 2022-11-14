@@ -15,6 +15,7 @@ class JSObject:
     def __init__(self, indent = '\t', ignore_attr=[], color: Optional[Color] = Colors_[0]):
         self.__indent = indent
         self.__color = color if isinstance(color, Color) else Colors_.Empty() 
+        self.__address = []
         self.__ignore_attr = ['__slotnames__','__getitem__','__repr__','__str__', 'fromDict', '__init__', 'jsonSerialize', *ignore_attr, '_'+self.__class__.__name__ + '__indent'+'', '_'+self.__class__.__name__ + '__ignore_attr', '_'+self.__class__.__name__ + '__color']
 
     def __repr__(self) -> str:
@@ -31,7 +32,7 @@ class JSObject:
     def __getitem__(self, name):
         return self.__getattribute__(name)
 
-    def jsonSerialize(self, js:Union[list, dict, tuple], level) -> str:
+    def jsonSerialize(self, js:Union[list, dict, tuple], level, address = []) -> str:
         data   = ""
         if isinstance(js, dict):
             data = self.__color.apply("{")+"\n"
@@ -39,14 +40,25 @@ class JSObject:
                 if i in self.__ignore_attr:
                     continue
                 elif type(js[i]) in [dict]:
-                    data+=self.__indent*level+self.jsonSerialize(js[i], level+1)+self.__color.commas+"\n"
+                    print(address)
+                    if id(js[i]) in address:
+                        data += self.__indent*level+self.__color.keys(i)+self.__color.colon+self.__color.other+"{.....}"
+                    else:
+                        addr=address.copy()
+                        addr.append(id(js[i]))
+                        data+=self.__indent*level+self.jsonSerialize(js[i], level+1, address=addr)+self.__color.commas+"\n"
                 elif isinstance(js[i], (list, tuple)):
-                    data+=self.__indent*level+f'{self.__color.keys(i.__repr__() if i.isnumeric() else i)}'+self.__color.colon+self.jsonSerialize(js[i], level+1)+self.__color.commas+"\n"
+                    data+=self.__indent*level+f'{self.__color.keys(i.__repr__() if i.isnumeric() else i)}'+self.__color.colon+self.jsonSerialize(js[i], level+1, address=address.copy())+self.__color.commas+"\n"
                 elif isinstance(js[i], str):
                     rep = js[i].__repr__()
                     data+=self.__indent*level+self.__color.keys(i if i.isnumeric() else i)+self.__color.colon+self.__color.apply(rep)+self.__color.commas+"\n"
                 elif isinstance(js[i], self.__class__):
-                    data+=self.__indent*level+f'{self.__color.keys(i.__repr__()) if i.isnumeric() else i}'+self.__color.colon+self.jsonSerialize(js[i].__dict__, level+1)+self.__color.commas+"\n"
+                    if id(i) in address:
+                        data += '%%'
+                    else:
+                        addr=address.copy()
+                        addr.append(id(i))
+                        data+=self.__indent*level+f'{self.__color.keys(i.__repr__()) if i.isnumeric() else i}'+self.__color.colon+self.jsonSerialize(js[i].__dict__, level+1, address=addr)+self.__color.commas+"\n"
                 else:
                     data+=self.__indent*level+self.__color.keys(i.__repr__() if i.isnumeric() else i)+self.__color.colon+f"{self.__color.apply(js[i])}"+self.__color.commas+"\n"
             else:
@@ -55,11 +67,26 @@ class JSObject:
             data = ' '+self.__color.apply("[")+' '+"\n"
             for i in js:
                 if isinstance(i, (list, tuple)):
-                    data+=self.__indent*level+self.jsonSerialize(i, level+1)+self.__color.commas+"\n"
+                    if id(i) in address:
+                        data += self.__indent*level+'[....]'
+                    else:
+                        addr=address.copy()
+                        addr.append(id(i))
+                        data+=self.__indent*level+self.jsonSerialize(i, level+1, address=addr)+self.__color.commas+"\n"
                 elif isinstance(i, dict):
-                    data+=self.__indent*level+self.jsonSerialize(i, level+1)+self.__color.commas+"\n"
+                    if id(i) in address:
+                        data += self.__indent*level+'{....}'
+                    else:
+                        addr=address.copy()
+                        addr.append(id(i))
+                        data+=self.__indent*level+self.jsonSerialize(i, level+1, address=addr)+self.__color.commas+"\n"
                 elif isinstance(i, self.__class__):
-                    data+=self.__indent*level+self.jsonSerialize(i.__dict__, level+1)+self.__color.commas+"\n"
+                    if id(i) in address:
+                        data += '$$'
+                    else:
+                        addr=address.copy()
+                        addr.append(id(i))
+                        data+=self.__indent*level+self.jsonSerialize(i.__dict__, level+1, address=addr)+self.__color.commas+"\n"
                 else:
                     data+=self.__indent*level+self.__color.apply(i.__repr__() if isinstance(i, str) else i)+''+self.__color.commas+"\n"
             else:
@@ -76,7 +103,11 @@ class JSObject:
                 data = []
                 for i in js:
                     if type(i) in [list, dict, tuple]:
-                        data.append(self.fromDict(i, indent))
+                        if id(i) not in self.__address:
+                            self.__address.append(id(i))
+                            data.append(self.fromDict(i, indent))
+                        else:
+                            data.append(i)
                     else:
                         data.append(i)
                 return type(js)(data)
@@ -84,7 +115,11 @@ class JSObject:
                 obj = self.__class__(self.__indent, self.__ignore_attr, self.__color)
                 for i in js.keys():
                     if type(js[i]) in [list, dict, tuple]:
-                        setattr(obj,i.replace(" ","_"),self.fromDict(js[i], indent))
+                        if id(i) not in self.__address:
+                            self.__address.append(id(i))
+                            setattr(obj,i.replace(" ","_"),self.fromDict(js[i], indent))
+                        else:
+                            setattr(obj,i.replace(" ","_"),js[i])
                     else:
                         setattr(obj, i.replace(" ","_"), js[i])
                 return obj

@@ -2,7 +2,7 @@
 ```bash
 $ pip install git+https://github.com/krypton-byte/dict2object
 ```
-### Convert Dict Datatype to Object Like Javascript
+### Convert Dict Datatype to Javascript Object Like
 ```python
 >>> from dict2object import JSObject
 >>> js=JSObject(indent=' '*4).fromDict({

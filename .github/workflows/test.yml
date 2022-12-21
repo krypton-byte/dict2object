@@ -22,4 +22,5 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Test Library
       run: |
+        pip3 install git+https://github.com/krypton-byte/dict2object
         python test.py

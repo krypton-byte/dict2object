@@ -88,7 +88,7 @@ class JSObject:
             raise ObjectOrNumberInKeysNotAllowed()
     def __getattr__(self, __name: str) -> Any:
         g = self.__dict_data[__name]
-        if isinstance(g, dict):
+        if isinstance(g, (dict, list, tuple)):
             return self.__class__().fromDict(g)
         return g
     def __getitem__(self, name: str):

@@ -30,7 +30,7 @@ class JSObject:
             for i in js.keys():
                 if type(js[i]) in [dict]:
                     if id(js[i]) in address:
-                        data += self.__indent*level+self.__color.keys(i)+self.__color.colon+self.__color.other+"{.....}"
+                        data += self.__indent*level+self.__color.keys(i)+self.__color.colon+self.__color.other+"{.....}\n,"
                     else:
                         addr=address.copy()
                         addr.append(id(js[i]))

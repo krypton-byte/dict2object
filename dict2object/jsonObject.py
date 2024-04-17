@@ -2,7 +2,8 @@ from __future__ import annotations
 from typing import (
     Union,
     Optional,
-    Any
+    Any,
+    TypeVar
 )
 from .colors import Color, Colors
 from .errorException import (
@@ -10,6 +11,8 @@ from .errorException import (
     ObjectOrNumberInKeysNotAllowed
 )
 Colors_ = Colors()
+T = TypeVar('T')
+
 
 class JSObject:
     def __init__(self, indent = '\t', color: Optional[Color] = Colors_[0]):
@@ -76,7 +79,7 @@ class JSObject:
                 data = data.strip(self.__color.commas+"\n")+"\n"+self.__indent*(level-1)+self.__color.apply("]")        
         return data
 
-    def fromDict(self, js:Union[list, dict, tuple], indent:Optional[str] = None) -> Union[Any, tuple, list]:
+    def fromDict(self, js:Union[list, dict, tuple], indent:Optional[str] = None) -> T:
         if indent:
             self.__indent = indent
         if not isinstance(js, (dict, list, tuple)):

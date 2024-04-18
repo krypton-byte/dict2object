@@ -19,6 +19,10 @@ class JSObject:
         self.__indent = indent
         self.__color = color if isinstance(color, Color) else Colors_.Empty() 
         self.__dict_data: Union[list, dict, tuple] = {}
+
+    def get_dict(self):
+        return self.__dict_data
+    
     def __repr__(self) -> str:
         y = self.jsonSerialize(self.__dict_data, 1)
         return y
